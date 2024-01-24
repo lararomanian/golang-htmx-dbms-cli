@@ -1,0 +1,203 @@
+package main
+
+import (
+	// "encoding/json"
+	"encoding/json"
+	"fmt"
+	// "net/http"
+	"database/sql"
+	"log"
+	// "time"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+type TableColumn struct {
+	Name          string      `json:"name"`
+	KeyType       KEY_TYPE    `json:"key_type"`
+	ValueType     VALUE_TYPE  `json:"value_type"`
+	ForeignKey    *ForeignKey `json:"foreign_key,omitempty"`
+	Unique        bool        `json:"unique,omitempty"`
+	Check         string      `json:"check,omitempty"`
+	Default       string      `json:"default,omitempty"`
+	AutoIncrement bool        `json:"auto_increment,omitempty"`
+}
+
+type ForeignKey struct {
+	ReferenceTable  string `json:"reference_table"`
+	ReferenceColumn string `json:"reference_column"`
+}
+
+type Table struct {
+	name    string
+	columns []TableColumn
+}
+
+type STATEMENT string
+type KEY_TYPE string
+type VALUE_TYPE string
+
+const (
+	primary_key KEY_TYPE = "PRIMARY_KEY"
+	unique_key  KEY_TYPE = "UNIQUE_KEY"
+	foreign_key KEY_TYPE = "FOREIGN_KEY"
+)
+
+const (
+	int_type      VALUE_TYPE = "INT"
+	varchar_type  VALUE_TYPE = "VARCHAR"
+	char_type     VALUE_TYPE = "CHAR"
+	textType      VALUE_TYPE = "TEXT"
+	float_type    VALUE_TYPE = "FLOAT"
+	double_type   VALUE_TYPE = "DOUBLE"
+	decimal_type  VALUE_TYPE = "DECIMAL"
+	date_type     VALUE_TYPE = "DATE"
+	dateTime_type VALUE_TYPE = "DATETIME"
+)
+
+const (
+	CREATE_DATABASE STATEMENT = "CREATE DATABASE IF NOT EXISTS "
+	DROP_DATABASE   STATEMENT = "DROP DATABASE "
+)
+
+const (
+	CREATE_TABLE STATEMENT = "CREATE TABLE "
+	ALTER_TABLE  STATEMENT = "ALTER TABLE "
+	DROP_TABLE   STATEMENT = "DROP TABLE "
+	USE          STATEMENT = "USE "
+)
+
+const (
+	db_name = "rest"
+	db_user = "root"
+	db_pass = "admin"
+)
+
+func createStatement(statement string, statement_type STATEMENT) string {
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("Statement is :")
+	fmt.Printf("%v%s\n", statement_type, statement)
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	return string(statement_type) + statement
+}
+
+func createTable(table Table, conn sql.DB, table_name string) {
+
+	fmt.Println("-------------------------------------------------------------------------------------------")
+
+	selected_table := createStatement("test", STATEMENT(USE))
+
+	_, err := conn.Exec(selected_table)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("--------------------------------------------------------------------------------------------")
+}
+
+func displayTable(table Table) {
+
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("Table name: ", table.name)
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	jsonData, err := json.MarshalIndent(table.columns, "", "    ")
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	// Print the JSON data
+	fmt.Println(string(jsonData))
+	fmt.Println("--------------------------------------------------------------------------------------------")
+
+}
+
+func createDatabase(name string, conn sql.DB) {
+
+	res, err := conn.Exec(name)
+
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("Exec statemetn: ", name)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%v", res)
+	fmt.Println("--------------------------------------------------------------------------------------------")
+}
+
+func dropDatabase(statement string, conn sql.DB) {
+	res, err := conn.Exec(statement)
+
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("Exec Statement: ", statement)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%v", res)
+	fmt.Println("--------------------------------------------------------------------------------------------")
+}
+
+//JSON WRITER
+
+func writeTableJSON(dir string, table Table) {
+
+	fmt.Println("--------------------------------------------------------------------------------------------")
+
+    filename := string(table.name)
+
+    final_directory := dir + filename
+    fmt.Println(final_directory)
+
+
+	fmt.Println("--------------------------------------------------------------------------------------------")
+}
+
+//
+
+func main() {
+
+	roleTable := Table{
+		name: "roles",
+		columns: []TableColumn{
+			{Name: "role_id", KeyType: primary_key, ValueType: int_type, AutoIncrement: true},
+			{Name: "role_name", ValueType: varchar_type, Unique: true},
+			{Name: "created_at", ValueType: dateTime_type},
+			{Name: "updated_at", ValueType: dateTime_type},
+		},
+	}
+
+	userTable := Table{
+		name: "users",
+		columns: []TableColumn{
+			{Name: "user_id", KeyType: primary_key, ValueType: int_type, AutoIncrement: true},
+			{Name: "username", ValueType: varchar_type, Unique: true},
+			{Name: "email", ValueType: varchar_type, Unique: true},
+			{Name: "created_at", ValueType: dateTime_type},
+			{Name: "updated_at", ValueType: dateTime_type},
+			{Name: "role_id", KeyType: foreign_key, ValueType: int_type, ForeignKey: &ForeignKey{ReferenceTable: "roles", ReferenceColumn: "role_id"}},
+		},
+	}
+
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", db_user, db_pass, db_name))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	fmt.Println()
+
+	writeTableJSON("./jsons/structures/", roleTable)
+	writeTableJSON("./jsons/structures/", userTable)
+
+	// createDatabase(createStatement("test_2", STATEMENT(CREATE_DATABASE)), *db)
+	// dropDatabase(createStatement("test_2", STATEMENT(DROP_DATABASE)), *db)
+	//
+	// createTable(roleTable, *db, "test")
+	//
+	// displayTable(roleTable)
+	// displayTable(userTable)
+}

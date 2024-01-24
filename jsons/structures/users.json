@@ -1,0 +1,39 @@
+[
+    {
+        "name": "user_id",
+        "key_type": "PRIMARY KEY",
+        "value_type": "INT",
+        "auto_increment": true
+    },
+    {
+        "name": "username",
+        "key_type": "",
+        "value_type": "VARCHAR(255)",
+        "unique": true
+    },
+    {
+        "name": "email",
+        "key_type": "",
+        "value_type": "VARCHAR(255)",
+        "unique": true
+    },
+    {
+        "name": "created_at",
+        "key_type": "",
+        "value_type": "DATETIME"
+    },
+    {
+        "name": "updated_at",
+        "key_type": "",
+        "value_type": "DATETIME"
+    },
+    {
+        "name": "role_id",
+        "key_type": "FOREIGN KEY",
+        "value_type": "INT",
+        "foreign_key": {
+            "reference_table": "roles",
+            "reference_column": "role_id"
+        }
+    }
+]

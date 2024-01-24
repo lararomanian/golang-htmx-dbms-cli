@@ -1,0 +1,24 @@
+[
+    {
+        "name": "role_id",
+        "key_type": "PRIMARY KEY",
+        "value_type": "INT",
+        "auto_increment": true
+    },
+    {
+        "name": "role_name",
+        "key_type": "",
+        "value_type": "VARCHAR(255)",
+        "unique": true
+    },
+    {
+        "name": "created_at",
+        "key_type": "",
+        "value_type": "DATETIME"
+    },
+    {
+        "name": "updated_at",
+        "key_type": "",
+        "value_type": "DATETIME"
+    }
+]
